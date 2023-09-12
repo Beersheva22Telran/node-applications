@@ -1,33 +1,21 @@
-import fs from 'node:fs/promises';
 import http from 'node:http';
-//streams theory:
-//writable stream (write) Output stream
-//readable stream (read)  INput stream
-//duplex (write, read) TCP socket
-//transform ZipLibrary
-//Examples:
-//  <readable stream>.pipe(<writable stream>)
-//  <socket stream>.map<request => protocol.getResponse(request)>.pipe(<socket stream>)
-//pipline(<readable stream>, <transform stream>, <writable stream>)
-const isComments = process.argv[2] == 'comments'
-const fileInput = process.argv[3] || 'appl-streams.js';
-const fileOutput = process.argv[4] || 'appl-streams-out';
+import config from 'config'
+import {URL } from 'node:url';
+import RouterDocText from './routes/Router.js';
+const SERVER_PORT = 'server.port';
+const server = http.createServer();
 
-const handlerInput = await fs.open(fileInput);
-const handlerOutput = await fs.open(fileOutput, 'w')
-const streamOutput = handlerOutput.createWriteStream();
-getStreamWith(handlerInput, isComments).pipe(streamOutput);
+const port = process.env.PORT || (config.has(SERVER_PORT) && config.get(SERVER_PORT)) || 0
+server.listen(port , () => console.log(`server is listening on port ${server.address().port}`))
+new RouterDocText(server);
+server.on('request', (req, response) => {
+    const request = new URL(`http://${req.headers.host}${req.url}`);
+    const file = request.searchParams.get('file');
+    console.log(`request type: ${request.pathname}; file name is ${file}`);
+    server.emit(request.pathname, file, response);
+})
 
 
-function getStreamWith(handler, isComments) {
-    let streamInput = handler.createReadStream();
-    streamInput.setEncoding('utf-8');
-    streamInput = streamInput.flatMap(chunk => chunk.split('\n')).filter(line => {
-        
-        const res = line.trim().startsWith('//');
-        return isComments ? res : !res;
-    })
-    .map(line => isComments ? line.substr('//') : line);
-    return streamInput;
-}
+
+
 
