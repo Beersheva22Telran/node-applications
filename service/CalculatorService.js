@@ -3,9 +3,11 @@ import CalculatorView from "../view/CalculatorView.js";
 const view = new CalculatorView();
 export default class CalculatorService {
     constructor(emitter, operations) {
-        emitter.on("/add", (operands,response) => {
-           this.writeResult(operands[0] + operands[1], response)
-        }) 
+       
+       Array.from(operations.entries())
+       .forEach(operation => emitter.addListener(operation[0], (operands, response) => {
+        this.writeResult(operation[1](operands[0], operands[1]), response)
+       }))
     }
     writeResult(result, response) {
         response.write(view.getHtml(result, false));
