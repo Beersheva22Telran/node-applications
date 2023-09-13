@@ -2,6 +2,7 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    //
     "version": "0.2.0",
     "configurations": [
         {
@@ -11,7 +12,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\mongo-appl.js",
+            "program": "${workspaceFolder}\\appl-express.js",
             "env" : {
                 "ATLAS_URI":"mongodb+srv://root:12345.com@cluster0.uovkc8l.mongodb.net/college?retryWrites=true&w=majority"
             }
