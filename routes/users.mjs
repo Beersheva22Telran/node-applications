@@ -1,10 +1,10 @@
 import express from 'express'
 import config from 'config'
+import asyncHandler from 'express-async-handler'
 import Joi from 'joi'
 import { validate } from '../middleware/validation.mjs';
 import UsersService from '../service/UsersService.mjs';
 export const users = express.Router();
-
 const usersService = new UsersService(process.env.ATLAS_URI_ACCOUNTS_TEST, config.get('mongodb.db'))
 const schema = Joi.object({
     username: Joi.string().alphanum().min(5).required(),
@@ -12,16 +12,27 @@ const schema = Joi.object({
     roles: Joi.array().items(Joi.string().valid('ADMIN', 'USER')).required()
 })
 users.use(validate(schema))
-users.post('/sign-up', async (req, res) => {
+users.post('/sign-up', asyncHandler(async (req, res) => {
     if(!req.validated) {
         res.status(500);
-        throw ("This API requires validation")
+       throw ("This API requires validation")
     }
      if(req.joiError) {
         res.status(400);
         throw (req.joiError)
     }
-
-   res.status(201).send(await usersService.addAccount(req.body));
-});
+  try {
+    const accountRes = await usersService.addAccount(req.body);
+     res.status(201).send(accountRes);
+  } catch (error) {
+    let errorResponse = `account with username ${req.body.username} already exists`
+    if (error.code == 11000) {
+        res.status(400);
+        
+    } else {
+        errorResponse = `uknown error: ${JSON.stringify(error)}`
+    }
+    throw (errorResponse);
+  }
+}));
 
