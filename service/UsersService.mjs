@@ -7,6 +7,9 @@ export default class UsersService {
         this.#collection = connection.getCollection('accounts');
     }
     async addAccount(account) {
+        if (await this.#collection.findOne({_id:account.username})) {
+            throw `account ${account.username} already exists`
+        }
         const accountDB = await toAccountDB(account)
         await this.#collection.insertOne(accountDB);
         return account;

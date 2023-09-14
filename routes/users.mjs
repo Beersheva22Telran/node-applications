@@ -25,14 +25,11 @@ users.post('/sign-up', asyncHandler(async (req, res) => {
     const accountRes = await usersService.addAccount(req.body);
      res.status(201).send(accountRes);
   } catch (error) {
-    let errorResponse = `account with username ${req.body.username} already exists`
-    if (error.code == 11000) {
+    
+    if (typeof(error) === 'string') {
         res.status(400);
-        
-    } else {
-        errorResponse = `uknown error: ${JSON.stringify(error)}`
     }
-    throw (errorResponse);
-  }
-}));
+    throw (error);
+  
+}}));
 
