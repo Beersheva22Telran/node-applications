@@ -1,10 +1,17 @@
 import Joi from 'joi'
-export function validate(req, res, next) {
-    if (req.schema && req.body) {
-        const {error} = req.schema.validate(req.body);
-        req.validated = true;
-        req.error = error;
+export function validate(schema) {
+    return (req, res, next) =>
+    {if(!schema) {
+        schema=req.schema
     }
-    next();
+    if (schema && req.body) {
+        const {error} = schema.validate(req.body);
+        req.validated = true;
+        if(error) {
+            req.joiError = error.details[0].message;
+        }
+        
+    }
+    next();}
 
 }

@@ -6,10 +6,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
-app.use((req, res, next) => {
-   req.body.ad=100;
-    next();
-})
+
 
 app.use('/users',users);
 const server = app.listen(8080);
