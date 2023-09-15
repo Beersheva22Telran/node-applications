@@ -21,15 +21,24 @@ users.post('/sign-up', asyncHandler(async (req, res) => {
         res.status(400);
         throw (req.joiError)
     }
-  try {
     const accountRes = await usersService.addAccount(req.body);
-     res.status(201).send(accountRes);
-  } catch (error) {
-    
-    if (typeof(error) === 'string') {
+    if (accountRes == null) {
         res.status(400);
+        throw `account ${req.body.username} already exists`
     }
-    throw (error);
+     res.status(201).send(accountRes);
   
-}}));
+}));
+users.get("/:username", asyncHandler(
+    async (req,res) => {
+        const username = req.params.username;
+      
+        const account = await usersService.getAccount(username);
+        if (!account) {
+            res.status(404);
+            throw `account ${username} notfound`
+        }
+        res.send(account);
+    }
+));
 

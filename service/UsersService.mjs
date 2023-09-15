@@ -7,17 +7,26 @@ export default class UsersService {
         this.#collection = connection.getCollection('accounts');
     }
     async addAccount(account) {
-        if (await this.#collection.findOne({_id:account.username})) {
-            throw `account ${account.username} already exists`
-        }
+       
         const accountDB = await toAccountDB(account)
-        await this.#collection.insertOne(accountDB);
+        try {
+            await this.#collection.insertOne(accountDB);
+        } catch (error) {
+            if(error.code == 11000) {
+                account = null;
+            } else {
+                throw error;
+            }
+        }
         return account;
     }
     toAccount(accountdb) {
-        const res = {...accountdb, username:accountdb._id};
-        delete res._id;
+        const res = {username: accountdb._id, roles: accountdb.roles};
         return res;
+    }
+    async getAccount(username) {
+        const document = await this.#collection.findOne({_id:username});
+        return document == null ? null : this.toAccount(document);
     }
 
 

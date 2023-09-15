@@ -3,7 +3,7 @@
         "port":3500
     },
     "mongodb": {
-        "uri":"mongo_uri_test",
+        "env_uri": "ATLAS_URI_ACCOUNTS_TEST",
         "db":"users"
     }
 
