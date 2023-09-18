@@ -2,7 +2,7 @@ import MongoConnection from "../domain/MongoConnection.mjs"
 import config from 'config'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-const MONGO_ENV_URI = 'mongodb.env-uri';
+const MONGO_ENV_URI = 'mongodb.env_uri';
 const MONGO_DB_NAME = 'mongodb.db';
 const ENV_JWT_SECRET = 'jwt.env_secret'
 export default class UsersService {
@@ -44,7 +44,7 @@ export default class UsersService {
 }
 function getJwt(username, roles) {
     return jwt.sign({roles}, process.env[config.get(ENV_JWT_SECRET)], {
-        expiresIn: config.get('expiresIn'),
+        expiresIn: config.get('jwt.expiresIn'),
         subject: username
     })
 }

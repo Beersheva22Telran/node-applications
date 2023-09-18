@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler'
 import Joi from 'joi'
 import { validate } from '../middleware/validation.mjs';
 import UsersService from '../service/UsersService.mjs';
+import authVerification from '../middleware/authVerification.mjs';
 export const users = express.Router();
 const usersService = new UsersService()
 const schema = Joi.object({
@@ -11,7 +12,7 @@ const schema = Joi.object({
     roles: Joi.array().items(Joi.string().valid('ADMIN', 'USER')).required()
 })
 users.use(validate(schema))
-users.post('/sign-up', asyncHandler(async (req, res) => {
+users.post('/sign-up', authVerification("ADMIN_ACCOUNTS"),  asyncHandler(async (req, res) => {
     if(!req.validated) {
         res.status(500);
        throw ("This API requires validation")
@@ -28,7 +29,7 @@ users.post('/sign-up', asyncHandler(async (req, res) => {
      res.status(201).send(accountRes);
   
 }));
-users.get("/:username", asyncHandler(
+users.get("/:username",authVerification("ADMIN_ACCOUNTS", "ADMIN", "USER"), asyncHandler(
     async (req,res) => {
         const username = req.params.username;
       
@@ -40,4 +41,15 @@ users.get("/:username", asyncHandler(
         res.send(account);
     }
 ));
+users.post("/login", asyncHandler(
+    async (req, res) => {
+        const loginData = req.body;
+        const accessToken = await usersService.login(loginData);
+        if (!accessToken) {
+            res.status(400);
+            throw 'Wrong credentials'
+        }
+        res.send({accessToken});
+    }
+))
 
