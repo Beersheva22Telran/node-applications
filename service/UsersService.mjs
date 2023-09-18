@@ -1,8 +1,15 @@
 import MongoConnection from "../domain/MongoConnection.mjs"
+import config from 'config'
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+const MONGO_ENV_URI = 'mongodb.env-uri';
+const MONGO_DB_NAME = 'mongodb.db';
+const ENV_JWT_SECRET = 'jwt.env_secret'
 export default class UsersService {
     #collection
-    constructor(connection_string, dbName) {
+    constructor() {
+        const connection_string = process.env[config.get(MONGO_ENV_URI)];
+        const dbName = config.get(MONGO_DB_NAME);
         const connection = new MongoConnection(connection_string, dbName);
         this.#collection = connection.getCollection('accounts');
     }
@@ -20,20 +27,33 @@ export default class UsersService {
         }
         return account;
     }
-    toAccount(accountdb) {
-        const res = {username: accountdb._id, roles: accountdb.roles};
-        return res;
-    }
+    
     async getAccount(username) {
         const document = await this.#collection.findOne({_id:username});
-        return document == null ? null : this.toAccount(document);
+        return document == null ? null : toAccount(document);
+    }
+    async login(loginData) {
+        const account = await this.getAccount(loginData.username);
+        let accessToken;
+        if (account && await bcrypt.compare(loginData.password, account.passwordHash)) {
+            accessToken = getJwt(account.username, account.roles);
+        }
+        return accessToken;
     }
 
-
+}
+function getJwt(username, roles) {
+    return jwt.sign({roles}, process.env[config.get(ENV_JWT_SECRET)], {
+        expiresIn: config.get('expiresIn'),
+        subject: username
+    })
+}
+function toAccount(accountdb) {
+    const res = {username: accountdb._id, roles: accountdb.roles, passwordHash: accountdb.passwordHash};
+    return res;
 }
 async function toAccountDB(account) {
     const passwordHash = await bcrypt.hash(account.password, 10);
     const res = {_id: account.username, passwordHash, roles: account.roles};
-    
     return res;
 }
