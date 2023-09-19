@@ -12,6 +12,7 @@ export function validate(schema) {
         }
         
     }
-    next();}
+    next();
+}
 
 }
