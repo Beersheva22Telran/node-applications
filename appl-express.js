@@ -18,9 +18,12 @@ app.use(bodyParser.json());
 app.use(morgan('tiny'));
 app.use(auth);
 app.ws('/employees/websocket', (ws, req) => {
-    console.log(`connection from ${req.socket.remoteAddress}`)
-    ws.send("Hello");
-    wss.clients.forEach(socket => socket.send(`number of connections is ${wss.clients.size}`))
+    console.log(`connection from ${req.socket.remoteAddress}, protocol: ${ws.protocol}`)
+    
+})
+app.use((req, res, next)=> {
+    req.wss = wss;
+    next();
 })
 app.use('/employees', employees);
 app.use('/users',users);
