@@ -7,11 +7,21 @@ import config from 'config';
 import errorHandler from './middleware/errorHandler.mjs';
 import auth from './middleware/auth.mjs';
 import { employees } from './routes/employees.mjs';
+import expressWs from 'express-ws';
+
 const app = express();
+const expressWsInstant = expressWs(app);
+const wss = expressWsInstant.getWss();
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
 app.use(auth);
+app.ws('/employees/websocket', (ws, req) => {
+    console.log(`connection from ${req.socket.remoteAddress}`)
+    ws.send("Hello");
+    wss.clients.forEach(socket => socket.send(`number of connections is ${wss.clients.size}`))
+})
 app.use('/employees', employees);
 app.use('/users',users);
 const port = process.env.PORT || config.get('server.port')
